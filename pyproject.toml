@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 79
+extend-exclude = ['migrations']
+
+[tool.ruff.lint]
+preview = true
+select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+ignore = ['E501', 'PLR2004']  # Ignora o erro de linha muito longa
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
+[tool.taskipy.tasks]
+lint = 'ruff check .'
+format = 'ruff check --fix'
+run = 'uvicorn app.main:app --reload --port 8000'
