@@ -9,11 +9,14 @@ from langchain_core.documents import Document
 from rag.splitter import split_documents
 
 
-def process_pdf(file: UploadFile) -> List[Document]:
+async def process_pdf(file: UploadFile) -> List[Document]:
     temp_file_path = None
+
     try:
+        content = await file.read()
+
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-            temp_file.write(file.file.read())
+            temp_file.write(content)
             temp_file_path = temp_file.name
 
         loader = PyPDFLoader(file_path=temp_file_path)

@@ -13,11 +13,9 @@ def get_vector_store():
     global _global_instance_vector_store
 
     if _global_instance_vector_store:
-        print('Usou a instancia')
         return _global_instance_vector_store
 
     try:
-        print('Criou uma nova')
         _global_instance_vector_store = Chroma(
             persist_directory=settings.VECTOR_STORE_PATH,
             embedding_function=OpenAIEmbeddings(

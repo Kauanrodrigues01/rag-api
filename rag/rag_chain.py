@@ -1,9 +1,14 @@
+import os
+
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from rag.vector_store import get_vector_store
+from app.settings import settings
+
+os.environ['OPENAI_API_KEY'] = settings.OPENAI_API_KEY
 
 llm = ChatOpenAI(model='gpt-3.5-turbo')
 

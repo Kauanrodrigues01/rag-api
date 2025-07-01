@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, status
 from app.schemas import AskQuestionRequest, AskQuestionResponse, UploadResponse
 from app.settings import settings
 from rag.process import process_pdf
-from rag.rag_chain import ask_quention
+from rag.rag_chain import ask_question as ask_question_rag
 from rag.vector_store import add_chunks_to_vector_store
 
 os.environ['OPENAI_API_KEY'] = settings.OPENAI_API_KEY
@@ -24,7 +24,7 @@ async def upload_file(file: UploadFile):
             detail='invalid file format. Only PDF files are supported.'
         )
 
-    chunks = process_pdf(file)
+    chunks = await process_pdf(file)
 
     await add_chunks_to_vector_store(chunks=chunks)
 
@@ -40,5 +40,5 @@ async def ask_question(data: AskQuestionRequest):
     """
     Processa uma pergunta e retorna uma resposta gerada com base em documentos vetorizados.
     """
-    answer = await ask_quention(question=data.question)
+    answer = await ask_question_rag(data.question)
     return {'answer': answer}
