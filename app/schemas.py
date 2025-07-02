@@ -1,8 +1,11 @@
+from typing import List
+
 from pydantic import BaseModel
 
 
 class UploadResponse(BaseModel):
-    filename: str
+    filenames: List[str]
+    total_files: int
     total_chunks: int
     message: str
 

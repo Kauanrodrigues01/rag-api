@@ -5,8 +5,8 @@ from langchain.chains.retrieval import create_retrieval_chain
 from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
-from rag.vector_store import get_vector_store
 from app.settings import settings
+from rag.vector_store import get_vector_store
 
 os.environ['OPENAI_API_KEY'] = settings.OPENAI_API_KEY
 
