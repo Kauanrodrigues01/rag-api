@@ -34,7 +34,12 @@ async def upload_file(background_tasks: BackgroundTasks, files: List[UploadFile]
                 detail=f"Invalid file format for '{file.filename}'. Only PDF files are supported."
             )
 
-        chunks = await process_pdf(file)
+        try:
+            chunks = await process_pdf(file)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         all_chunks.extend(chunks)
 
     background_tasks.add_task(add_chunks_to_vector_store, all_chunks)
