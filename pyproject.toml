@@ -11,7 +11,22 @@ ignore = ['E501', 'PLR2004']  # Ignora o erro de linha muito longa
 preview = true
 quote-style = 'single'
 
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = '-p no:warnings'
+
+[tool.coverage.run]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__pycache__/*",
+    "*/conftest.py",
+    "*/__init__.py",
+]
+
 [tool.taskipy.tasks]
 lint = 'ruff check .'
 format = 'ruff check --fix'
 run = 'uvicorn app.main:app --reload --port 8000'
+test = 'pytest -s -x --cov=. -vv'
+post_test = 'coverage html'

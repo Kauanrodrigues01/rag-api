@@ -25,7 +25,7 @@ def get_vector_store():
         return _global_instance_vector_store
     except Exception as e:
         print(f'Error retrieving Vector Store: {e}')
-        return None
+        raise Exception(e)
 
 
 async def add_chunks_to_vector_store(chunks: List[Document]):
