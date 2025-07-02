@@ -1,7 +1,8 @@
 import pytest
-from rag.vector_store import get_vector_store, add_chunks_to_vector_store
+import re
+from rag.vector_store import get_vector_store, add_chunks_to_vector_store, generate_chunks_ids
+from langchain_core.documents import Document
 
-# A fixture `reset_vector_store_singleton` em conftest.py já garante o isolamento.
 
 def test_get_vector_store_singleton(mocker):
     """
@@ -50,4 +51,19 @@ async def test_add_chunks_to_vector_store_error(mocker, mock_vector_store, dummy
     
     with pytest.raises(Exception, match="Erro ao adicionar documentos"):
         await add_chunks_to_vector_store(dummy_documents)
-        
+
+
+def test_generate_chunks_ids():
+    filename = "example.pdf"
+    chunks = [Document(page_content="Chunk 1"), Document(page_content="Chunk 2")]
+
+    chunk_ids = generate_chunks_ids(filename, chunks)
+
+    # Verifica se a lista de IDs tem o mesmo tamanho da lista de chunks
+    assert len(chunk_ids) == len(chunks)
+
+    # Verifica se cada ID segue o padrão esperado e contém UUIDs válidos
+    for i, chunk_id in enumerate(chunk_ids):
+        # Regex para validar formato: example.pdf_chunk_i_uuid
+        pattern = rf"^{filename}_chunk_{i}_[0-9a-fA-F-]{{36}}$"
+        assert re.match(pattern, chunk_id), f'ID {chunk_id} não está no formato esperado'

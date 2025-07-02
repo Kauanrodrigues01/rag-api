@@ -6,7 +6,7 @@ async def test_process_pdf_success(fake_pdf_upload_file):
     """
     Testa se process_pdf processa um PDF válido com sucesso.
     """
-    chunks = await process_pdf(fake_pdf_upload_file)
+    chunks = await process_pdf(fake_pdf_upload_file, 'test.pdf')
 
     assert isinstance(chunks, list)
     assert len(chunks) > 0
@@ -20,7 +20,7 @@ async def test_process_pdf_file_read_error(mocker, fake_pdf_upload_file):
     mocker.patch.object(fake_pdf_upload_file, 'read', side_effect=IOError('Erro simulado'))
 
     with pytest.raises(IOError, match='Erro simulado'):
-        await process_pdf(fake_pdf_upload_file)
+        await process_pdf(fake_pdf_upload_file, 'test.pdf')
 
 
 @pytest.mark.asyncio
@@ -37,4 +37,4 @@ async def test_process_pdf_loader_error(mocker, fake_pdf_upload_file):
     mocker.patch('rag.process.split_documents')
 
     with pytest.raises(Exception, match='Erro ao carregar PDF'):
-        await process_pdf(fake_pdf_upload_file)
+        await process_pdf(fake_pdf_upload_file, 'test.pdf')

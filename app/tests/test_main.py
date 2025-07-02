@@ -28,7 +28,7 @@ def test_upload_files_success(mocker, client, fake_pdf_upload_file: UploadFile):
     assert response_data['total_files'] == 1
     # O processamento real acontece, então verificamos se ao menos 1 chunk foi criado
     assert response_data['total_chunks'] >= 1
-    assert 'processed and chunks added' in response_data['message']
+    assert 'Files processed and chunks sent for indexing.' == response_data['message']
 
     # O TestClient do FastAPI executa tarefas de background imediatamente.
     # Verificamos se a função foi chamada com os chunks corretos.
@@ -70,7 +70,7 @@ def test_upload_files_processing_error(mocker, client):
     response = client.post('/upload-files', files=files_to_upload)
 
     assert response.status_code == 500
-    assert 'Internal Server Error' in response.text
+    assert response.json() == {"detail": "Error processing file: error.pdf"}
 
 
 def test_ask_question_success(mocker, client):

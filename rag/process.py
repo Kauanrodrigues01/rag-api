@@ -9,7 +9,7 @@ from langchain_core.documents import Document
 from rag.splitter import split_documents
 
 
-async def process_pdf(file: UploadFile) -> List[Document]:
+async def process_pdf(file: UploadFile, filename: str) -> List[Document]:
     temp_file_path = None
 
     try:
@@ -21,6 +21,10 @@ async def process_pdf(file: UploadFile) -> List[Document]:
 
         loader = PyPDFLoader(file_path=temp_file_path)
         docs = loader.load()
+
+        # Atualiza o campo 'source' de todos os documentos
+        for doc in docs:
+            doc.metadata["source"] = filename
 
         return split_documents(docs=docs)
 

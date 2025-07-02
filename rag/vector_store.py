@@ -1,4 +1,5 @@
 from typing import List, Optional
+from uuid import uuid4
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -28,6 +29,17 @@ def get_vector_store():
         raise Exception(e)
 
 
-async def add_chunks_to_vector_store(chunks: List[Document]):
+async def add_chunks_to_vector_store(chunks: List[Document], ids: List[str]):
     vector_store = get_vector_store()
-    await vector_store.aadd_documents(documents=chunks)
+    await vector_store.aadd_documents(documents=chunks, ids=ids)
+
+
+
+async def delete_chunks_by_ids(ids: List[str]):
+    vector_store = get_vector_store()
+    await vector_store.adelete(ids=ids)
+
+
+def generate_chunks_ids(filename: str, chunks: List[Document]) -> List[str]:
+    chunk_ids = [f'{filename}_chunk_{i}_{uuid4()}' for i in range(len(chunks))]
+    return chunk_ids

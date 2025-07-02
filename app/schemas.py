@@ -16,3 +16,6 @@ class AskQuestionRequest(BaseModel):
 
 class AskQuestionResponse(BaseModel):
     answer: str
+
+class FileItem(BaseModel):
+    filename: str
