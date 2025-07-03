@@ -10,12 +10,5 @@ class UploadResponse(BaseModel):
     message: str
 
 
-class AskQuestionRequest(BaseModel):
-    question: str
-
-
-class AskQuestionResponse(BaseModel):
-    answer: str
-
 class FileItem(BaseModel):
     filename: str

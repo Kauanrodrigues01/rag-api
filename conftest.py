@@ -1,18 +1,20 @@
-import pytest
 import io
-from fpdf import FPDF
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
-from rag import vector_store as vector_store_module
+import pytest
+from fastapi.testclient import TestClient
+from fpdf import FPDF
 from langchain_core.documents import Document
 from starlette.datastructures import UploadFile as StarletteUploadFile
-from fastapi.testclient import TestClient
+
 from app.main import app
+from rag import vector_store as vector_store_module
 
 
 @pytest.fixture
 def client():
     return TestClient(app)
+
 
 @pytest.fixture
 def dummy_documents():
@@ -21,6 +23,7 @@ def dummy_documents():
         Document(page_content='Este é o primeiro documento.', metadata={'source': 'doc1'}),
         Document(page_content='Este é o segundo documento, um pouco mais longo para teste.', metadata={'source': 'doc2'}),
     ]
+
 
 @pytest.fixture
 def fake_pdf_upload_file():
@@ -39,12 +42,14 @@ def fake_pdf_upload_file():
 
     return StarletteUploadFile(filename="fake_test.pdf", file=pdf_bytes)
 
+
 @pytest.fixture
 def mock_retriever():
     """Fixture que simula um retriever com um método ainvoke."""
     retriever = MagicMock()
     retriever.ainvoke = AsyncMock(return_value='Resposta simulada da LLM.')
     return retriever
+
 
 @pytest.fixture
 def mock_vector_store(mock_retriever):
@@ -53,6 +58,7 @@ def mock_vector_store(mock_retriever):
     store.as_retriever.return_value = mock_retriever
     store.aadd_documents = AsyncMock(return_value=None)
     return store
+
 
 @pytest.fixture(autouse=True)
 def reset_vector_store_singleton():

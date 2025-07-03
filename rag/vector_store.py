@@ -34,7 +34,6 @@ async def add_chunks_to_vector_store(chunks: List[Document], ids: List[str]):
     await vector_store.aadd_documents(documents=chunks, ids=ids)
 
 
-
 async def delete_chunks_by_ids(ids: List[str]):
     vector_store = get_vector_store()
     await vector_store.adelete(ids=ids)

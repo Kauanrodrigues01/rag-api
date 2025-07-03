@@ -1,5 +1,7 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+
 
 @pytest.mark.asyncio
 async def test_ask_question_success(mocker, mock_vector_store):
@@ -31,14 +33,14 @@ async def test_ask_question_chain_exception(mocker, mock_vector_store):
     Testa o tratamento de exceção quando a invocação da cadeia falha.
     """
     question = 'Qualquer pergunta'
-    
+
     mocker.patch('rag.rag_chain.get_vector_store', return_value=mock_vector_store)
 
     # Mock da cadeia de recuperação para levantar uma exceção
     mock_chain_instance = MagicMock()
     mock_chain_instance.ainvoke = AsyncMock(side_effect=RuntimeError('Erro na API da OpenAI'))
     mocker.patch('rag.rag_chain.create_retrieval_chain', return_value=mock_chain_instance)
-    
+
     from rag.rag_chain import ask_question
     with pytest.raises(RuntimeError, match='Erro na API da OpenAI'):
         await ask_question(question)

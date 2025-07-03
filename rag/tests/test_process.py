@@ -1,5 +1,7 @@
 import pytest
+
 from rag.process import process_pdf
+
 
 @pytest.mark.asyncio
 async def test_process_pdf_success(fake_pdf_upload_file):
@@ -11,6 +13,7 @@ async def test_process_pdf_success(fake_pdf_upload_file):
     assert isinstance(chunks, list)
     assert len(chunks) > 0
     assert all(hasattr(chunk, 'page_content') for chunk in chunks)
+
 
 @pytest.mark.asyncio
 async def test_process_pdf_file_read_error(mocker, fake_pdf_upload_file):
