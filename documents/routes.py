@@ -1,21 +1,18 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import (
     APIRouter,
     BackgroundTasks,
     File,
     HTTPException,
-    Query,
+    Path,
     UploadFile,
     status,
 )
+from sqlalchemy import delete, select
 
-from rag.mongo_storage import (
-    delete_by_filename,
-    get_all_filenames,
-    get_chunk_ids_by_filename,
-    save_chunk_ids,
-)
+from app.dependencies import T_Session
 from rag.process import process_pdf
 from rag.vector_store import (
     add_chunks_to_vector_store,
@@ -23,13 +20,14 @@ from rag.vector_store import (
     generate_chunks_ids,
 )
 
-from .schemas import FileItem, UploadResponse
+from .models import DocumentRecord
+from .schemas import DocumentRecordSchema, UploadResponse
 
 router = APIRouter()
 
 
 @router.post('', response_model=UploadResponse, description='')
-async def add_file(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+async def add_file(session: T_Session, background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
     """
     Recebe um arquivo PDF, extrai seu conteúdo em chunks e indexa no vector store.
     """
@@ -54,8 +52,19 @@ async def add_file(background_tasks: BackgroundTasks, files: List[UploadFile] = 
         # Gera chunk_ids únicos por arquivo
         chunk_ids = generate_chunks_ids(filename=file.filename, chunks=chunks)
 
-        # Salva os IDs no Mongo por filename
-        await save_chunk_ids(file.filename, chunk_ids)
+        # Calcula o tamanho em MB do arquivo
+        content = await file.read()
+        size_mb = round(len(content) / (1024 * 1024), 2)  # bytes -> MB
+        await file.seek(0)  # reposiciona ponteiro, se precisar reutilizar
+
+        # Salva no DB
+        document_record = DocumentRecord(
+            filename=file.filename,
+            chunks_ids=chunk_ids,
+            size_mb=size_mb
+        )
+        session.add(document_record)
+        await session.commit()
 
         # Adiciona tarefa assíncrona para adicionar os chunks ao vector store
         background_tasks.add_task(add_chunks_to_vector_store, chunks, chunk_ids)
@@ -71,30 +80,49 @@ async def add_file(background_tasks: BackgroundTasks, files: List[UploadFile] = 
     }
 
 
-@router.get('', response_model=List[FileItem])
-async def list_uploaded_files():
+@router.get('', response_model=List[DocumentRecordSchema])
+async def list_files(session: T_Session):
     """
-    Retorna todos os arquivos salvos como uma lista de objetos.
+    Retorna todos os arquivos salvos no banco de dados.
     """
-    filenames = await get_all_filenames()
-    return [{'filename': name} for name in filenames]
+    result = await session.execute(select(DocumentRecord))
+    documents = result.scalars().all()
+    return documents
 
 
-@router.delete('')
-async def delete_file(filename: str = Query(..., description="Nome do arquivo para remoção")):
+@router.delete('/{document_id}', description='Remove um arquivo e seus chunks usando o ID.')
+async def delete_file(
+    session: T_Session,
+    document_id: UUID = Path(..., description='ID do documento a ser removido')
+):
     """
-    Deleta todos os chunks relacionados ao nome do arquivo PDF, baseado nos chunk_ids salvos no MongoDB.
+    Deleta todos os chunks relacionados ao ID do arquivo PDF e remove o registro no banco.
     """
-    chunk_ids = await get_chunk_ids_by_filename(filename)
+
+    result = await session.execute(select(DocumentRecord).where(DocumentRecord.id == document_id))
+    document = result.scalar_one_or_none()
+
+    if not document:
+        raise HTTPException(status_code=404, detail='Document not found.')
+
+    chunk_ids = document.chunks_ids
+
     if not chunk_ids:
-        raise HTTPException(status_code=404, detail='File not found or no associated chunks.')
+        raise HTTPException(status_code=404, detail='No associated chunks found for this document.')
 
     try:
+        # Deleta os chunks da vector store
         await delete_chunks_by_ids(chunk_ids)
-        await delete_by_filename(filename)  # remove do Mongo também
-        return {'message': f"{len(chunk_ids)} chunk(s) of the file '{filename}' deleted successfully."}
+
+        # Deleta registro do documento no Postgres
+        await session.execute(delete(DocumentRecord).where(DocumentRecord.id == document_id))
+        await session.commit()
+
+        return {'message': f"{len(chunk_ids)} chunk(s) deleted and document removed successfully."}
+
     except Exception as e:
+        await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f'Error deleting chunks: {str(e)}'
+            detail=f'Error deleting document and chunks: {str(e)}'
         )

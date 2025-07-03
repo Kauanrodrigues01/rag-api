@@ -1,7 +1,7 @@
 def test_ask_question_success(mocker, client):
     """
     Testa o caminho de sucesso ao fazer uma pergunta.
-    
+
     Mocka a função `ask_question_rag` para isolar a lógica do RAG e testar
     apenas a funcionalidade do endpoint.
     """
@@ -20,7 +20,7 @@ def test_ask_question_success(mocker, client):
 def test_ask_question_invalid_payload(client):
     """
     Testa a validação de um payload de requisição inválido.
-    
+
     Verifica se o FastAPI retorna um erro 422 Unprocessable Entity quando
     o corpo da requisição não corresponde ao schema Pydantic.
     """

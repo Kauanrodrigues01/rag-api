@@ -1,4 +1,6 @@
+from datetime import datetime
 from typing import List
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -10,5 +12,9 @@ class UploadResponse(BaseModel):
     message: str
 
 
-class FileItem(BaseModel):
+class DocumentRecordSchema(BaseModel):
+    id: UUID
     filename: str
+    size_mb: float
+    chunks_ids: List[str]
+    created_at: datetime

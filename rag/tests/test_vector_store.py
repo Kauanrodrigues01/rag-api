@@ -44,7 +44,7 @@ async def test_add_chunks_to_vector_store_success(mocker, mock_vector_store, dum
     o método `aadd_documents` da vector store.
     """
     mocker.patch('rag.vector_store.get_vector_store', return_value=mock_vector_store)
-    
+
     chunks_ids = generate_chunks_ids(filename='test.pdf', chunks=dummy_documents)
 
     await add_chunks_to_vector_store(dummy_documents, chunks_ids)

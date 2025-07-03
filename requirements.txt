@@ -8,3 +8,7 @@ langchain-chroma==0.2.4
 pypdf==5.7.0
 pydantic-settings==2.10.1
 motor==3.7.1
+SQLAlchemy==2.0.41
+alembic==1.16.2
+asyncpg==0.30.0
+psycopg2-binary==2.9.10

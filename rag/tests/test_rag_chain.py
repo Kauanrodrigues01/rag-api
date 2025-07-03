@@ -14,8 +14,6 @@ async def test_ask_question_success(mocker, mock_vector_store):
     mock_chain_instance.ainvoke = AsyncMock(return_value=expected_answer)
     mock_create_chain = mocker.patch('rag.rag_chain.create_retrieval_chain', return_value=mock_chain_instance)
 
-    mock_prompt = mocker.patch('rag.rag_chain.ChatPromptTemplate')
-
     from rag.rag_chain import ask_question
     response = await ask_question(question)
 

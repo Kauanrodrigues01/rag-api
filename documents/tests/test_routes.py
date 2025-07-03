@@ -5,9 +5,9 @@ from langchain_core.documents import Document
 def test_add_files_success(mocker, client, fake_pdf_upload_file: UploadFile):
     """
     Testa o caminho de sucesso do upload de múltiplos arquivos PDF.
-    
-    Este é um teste de integração que usa um PDF real (da fixture) para garantir 
-    que o `process_pdf` é chamado corretamente. Apenas a tarefa de background 
+
+    Este é um teste de integração que usa um PDF real (da fixture) para garantir
+    que o `process_pdf` é chamado corretamente. Apenas a tarefa de background
     é mockada para verificar seu agendamento.
     """
     mock_add_chunks = mocker.patch('documents.routes.add_chunks_to_vector_store')
@@ -56,7 +56,7 @@ def test_add_files_invalid_content_type(client):
 def test_add_files_processing_error(mocker, client):
     """
     Testa o tratamento de erro se `process_pdf` levantar uma exceção.
-    
+
     Garante que a aplicação lida com falhas internas e retorna 500 Internal Server Error.
     """
     # Simula uma falha inesperada durante o processamento do PDF
