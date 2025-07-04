@@ -5,7 +5,7 @@ from app.settings import settings
 
 table_registry = registry()
 
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
+engine = create_async_engine(settings.DATABASE_URL)
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,

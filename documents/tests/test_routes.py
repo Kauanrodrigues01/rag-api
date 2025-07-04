@@ -10,7 +10,7 @@ from documents.models import DocumentRecord
 
 # Test POST /documents
 @pytest.mark.asyncio
-async def test_add_douments_success(mocker, client, session, fake_pdf_upload_file: UploadFile):
+async def test_add_douments_success(mocker, client, session, api_key, fake_pdf_upload_file):
     """
     Successful single PDF upload with chunk generation and DB persistence
     """
@@ -23,7 +23,7 @@ async def test_add_douments_success(mocker, client, session, fake_pdf_upload_fil
         ('files', (fake_pdf_upload_file.filename, file_content, 'application/pdf')),
     ]
 
-    response = await client.post('/documents', files=files_to_upload)
+    response = await client.post('/documents', files=files_to_upload, headers={'X-API-KEY': api_key})
     assert response.status_code == 200
 
     response_data = response.json()
@@ -46,7 +46,7 @@ async def test_add_douments_success(mocker, client, session, fake_pdf_upload_fil
 
 
 @pytest.mark.asyncio
-async def test_add_documents_multiple_files_coverage(mocker, client, fake_pdf_upload_file):
+async def test_add_documents_multiple_files_coverage(mocker, client, api_key, fake_pdf_upload_file):
     mocker.patch('documents.routes.add_chunks_to_vector_store')
 
     fake_pdf_upload_file.file.seek(0)
@@ -57,7 +57,7 @@ async def test_add_documents_multiple_files_coverage(mocker, client, fake_pdf_up
         ('files', (f'two_{fake_pdf_upload_file.filename}', file_bytes, 'application/pdf')),
     ]
 
-    response = await client.post('/documents', files=files_to_upload)
+    response = await client.post('/documents', files=files_to_upload, headers={'X-API-KEY': api_key})
 
     assert response.status_code == 200
     data = response.json()
@@ -67,7 +67,29 @@ async def test_add_documents_multiple_files_coverage(mocker, client, fake_pdf_up
 
 
 @pytest.mark.asyncio
-async def test_add_douments_invalid_content_type(client, session):
+async def test_add_documents_unauthorized(client, fake_pdf_upload_file):
+    """
+    Tests whether the POST /documents endpoint returns 401 Unauthorized
+    when an API key is not sent or is invalid.
+    """
+    fake_pdf_upload_file.file.seek(0)
+    file_content = fake_pdf_upload_file.file.read()
+
+    files_to_upload = [
+        ('files', (fake_pdf_upload_file.filename, file_content, 'application/pdf')),
+    ]
+
+    response = await client.post('/documents', files=files_to_upload)
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Unauthorized'
+
+    response = await client.post('/documents', files=files_to_upload, headers={'X-API-KEY': 'wrong-key'})
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Unauthorized'
+
+
+@pytest.mark.asyncio
+async def test_add_douments_invalid_content_type(client, session, api_key):
     """
     Rejects non-PDF file upload with 400 error
     """
@@ -75,7 +97,7 @@ async def test_add_douments_invalid_content_type(client, session):
         ('files', ('test.txt', b'not a pdf', 'text/plain'))
     ]
 
-    response = await client.post('/documents', files=files_to_upload)
+    response = await client.post('/documents', files=files_to_upload, headers={'X-API-KEY': api_key})
 
     assert response.status_code == 400
     assert response.json()['detail'] == "Invalid file format for 'test.txt'. Only PDF files are supported."
@@ -86,7 +108,7 @@ async def test_add_douments_invalid_content_type(client, session):
 
 
 @pytest.mark.asyncio
-async def test_add_douments_processing_error(mocker, client, session):
+async def test_add_douments_processing_error(mocker, client, session, api_key):
     """
     Handles PDF processing failure with 500 error
     """
@@ -96,7 +118,7 @@ async def test_add_douments_processing_error(mocker, client, session):
         ('files', ('error.pdf', b'pdf content', 'application/pdf'))
     ]
 
-    response = await client.post('/documents', files=files_to_upload)
+    response = await client.post('/documents', files=files_to_upload, headers={'X-API-KEY': api_key})
 
     assert response.status_code == 500
     assert response.json() == {'detail': 'Error processing file: error.pdf'}
@@ -107,7 +129,7 @@ async def test_add_douments_processing_error(mocker, client, session):
 
 
 @pytest.mark.asyncio
-async def test_add_multiple_files_success(mocker, client, session, fake_pdf_upload_file):
+async def test_add_multiple_files_success(mocker, client, api_key, fake_pdf_upload_file):
     """
     Uploads multiple PDF files and persists each
     """
@@ -120,7 +142,7 @@ async def test_add_multiple_files_success(mocker, client, session, fake_pdf_uplo
         ('files', (f'copy2_{fake_pdf_upload_file.filename}', content, 'application/pdf')),
     ]
 
-    response = await client.post('/documents', files=files_to_upload)
+    response = await client.post('/documents', files=files_to_upload, headers={'X-API-KEY': api_key})
     assert response.status_code == 200
     data = response.json()
     assert data['total_files'] == 2
@@ -129,7 +151,7 @@ async def test_add_multiple_files_success(mocker, client, session, fake_pdf_uplo
 
 
 @pytest.mark.asyncio
-async def test_chunk_id_format(client, session, fake_pdf_upload_file, mocker):
+async def test_chunk_id_format(client, session, api_key, fake_pdf_upload_file, mocker):
     """
     Ensures chunk_ids follow naming pattern
     """
@@ -141,7 +163,7 @@ async def test_chunk_id_format(client, session, fake_pdf_upload_file, mocker):
         ('files', (fake_pdf_upload_file.filename, content, 'application/pdf')),
     ]
 
-    response = await client.post('/documents', files=files_to_upload)
+    response = await client.post('/documents', files=files_to_upload, headers={'X-API-KEY': api_key})
     assert response.status_code == 200
 
     stmt = select(DocumentRecord).where(DocumentRecord.filename == fake_pdf_upload_file.filename)
@@ -153,7 +175,7 @@ async def test_chunk_id_format(client, session, fake_pdf_upload_file, mocker):
 
 # Test GET /documents
 @pytest.mark.asyncio
-async def test_list_documents_returns_all_documents(client, session):
+async def test_list_documents_returns_all_documents(client, session, api_key):
     """
     Returns all document records in DB
     """
@@ -165,7 +187,7 @@ async def test_list_documents_returns_all_documents(client, session):
     await session.execute(insert(DocumentRecord), docs)
     await session.commit()
 
-    response = await client.get('/documents')
+    response = await client.get('/documents', headers={'X-API-KEY': api_key})
     assert response.status_code == 200
 
     data = response.json()
@@ -178,17 +200,17 @@ async def test_list_documents_returns_all_documents(client, session):
 
 
 @pytest.mark.asyncio
-async def test_list_documents_returns_empty_list(client):
+async def test_list_documents_returns_empty_list(client, api_key):
     """
     Returns empty list when no documents exist
     """
-    response = await client.get('/documents')
+    response = await client.get('/documents', headers={'X-API-KEY': api_key})
     assert response.status_code == 200
     assert response.json() == []
 
 
 @pytest.mark.asyncio
-async def test_list_documents_schema_format(client, session):
+async def test_list_documents_schema_format(client, session, api_key):
     """
     Response matches schema: filename, size_mb, chunks_ids, created_at
     """
@@ -200,7 +222,7 @@ async def test_list_documents_schema_format(client, session):
     session.add(document)
     await session.commit()
 
-    response = await client.get('/documents')
+    response = await client.get('/documents', headers={'X-API-KEY': api_key})
     assert response.status_code == 200
 
     data = response.json()
@@ -216,20 +238,35 @@ async def test_list_documents_schema_format(client, session):
 
 
 @pytest.mark.asyncio
-async def test_list_documents_db_error_handled(mocker, client, session):
+async def test_list_documents_unauthorized(client):
+    """
+    Tests whether the GET /documents endpoint returns 401 Unauthorized
+    when an API key is not sent or is invalid.
+    """
+    response = await client.get('/documents')
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Unauthorized'
+
+    response = await client.get('/documents', headers={'X-API-KEY': 'wrong-key'})
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Unauthorized'
+
+
+@pytest.mark.asyncio
+async def test_list_documents_db_error_handled(mocker, client, session, api_key):
     """
     Simulates DB error and ensures 500 is returned
     """
     mocker.patch.object(session, 'execute', side_effect=Exception('DB failure'))
 
-    response = await client.get('/documents')
+    response = await client.get('/documents', headers={'X-API-KEY': api_key})
 
     assert response.status_code == 500
 
 
 # Test DELETE /documents
 @pytest.mark.asyncio
-async def test_delete_document_success(mocker, client, session):
+async def test_delete_document_success(mocker, client, session, api_key):
     """
     Deletes document and chunks successfully, checking DB integration.
     """
@@ -243,7 +280,7 @@ async def test_delete_document_success(mocker, client, session):
     # Mock delete_chunks_by_ids para simular sucesso sem executar a função real
     mock_delete_chunks = mocker.patch('documents.routes.delete_chunks_by_ids', return_value=None)
 
-    response = await client.delete(f'/documents/{document.id}')
+    response = await client.delete(f'/documents/{document.id}', headers={'X-API-KEY': api_key})
 
     assert response.status_code == 200
     assert response.json() == {'message': f"{len(fake_chunk_ids)} chunk(s) deleted and document removed successfully."}
@@ -255,19 +292,41 @@ async def test_delete_document_success(mocker, client, session):
 
 
 @pytest.mark.asyncio
-async def test_delete_document_not_found(client):
+async def test_delete_documents_unauthorized(client, session):
+    """
+    Tests whether the DELETE /documents endpoint returns 401 Unauthorized
+    when an API key is not sent or is invalid.
+    """
+    fake_chunk_ids = ['chunk1', 'chunk2']
+
+    # Cria e salva documento no banco real de teste
+    document = DocumentRecord(filename='test.pdf', chunks_ids=fake_chunk_ids, size_mb=1.0)
+    session.add(document)
+    await session.commit()
+
+    response = await client.delete(f'/documents/{document.id}')
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Unauthorized'
+
+    response = await client.delete(f'/documents/{document.id}', headers={'X-API-KEY': 'wrong-key'})
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Unauthorized'
+
+
+@pytest.mark.asyncio
+async def test_delete_document_not_found(client, api_key):
     """
     Returns 404 if document does not exist.
     """
     non_existent_uuid = uuid4()  # UUID válido, mas inexistente no DB
 
-    response = await client.delete(f'/documents/{non_existent_uuid}')
+    response = await client.delete(f'/documents/{non_existent_uuid}', headers={'X-API-KEY': api_key})
     assert response.status_code == 404
     assert response.json()['detail'] == 'Document not found.'
 
 
 @pytest.mark.asyncio
-async def test_delete_document_no_chunks(client, session):
+async def test_delete_document_no_chunks(client, session, api_key):
     """
     Returns 404 if document has no associated chunks.
     """
@@ -276,13 +335,13 @@ async def test_delete_document_no_chunks(client, session):
     session.add(document)
     await session.commit()
 
-    response = await client.delete(f'/documents/{document.id}')
+    response = await client.delete(f'/documents/{document.id}', headers={'X-API-KEY': api_key})
     assert response.status_code == 404
     assert response.json()['detail'] == 'No associated chunks found for this document.'
 
 
 @pytest.mark.asyncio
-async def test_delete_document_internal_error(mocker, client, session):
+async def test_delete_document_internal_error(mocker, client, session, api_key):
     """
     Returns 500 if an error occurs during chunk deletion.
     """
@@ -295,7 +354,7 @@ async def test_delete_document_internal_error(mocker, client, session):
     # Força erro na função de deletar chunks
     mocker.patch('documents.routes.delete_chunks_by_ids', side_effect=Exception('Vector store error'))
 
-    response = await client.delete(f'/documents/{document.id}')
+    response = await client.delete(f'/documents/{document.id}', headers={'X-API-KEY': api_key})
 
     assert response.status_code == 500
     assert 'Error deleting document and chunks' in response.json()['detail']

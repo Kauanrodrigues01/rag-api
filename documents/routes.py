@@ -9,10 +9,12 @@ from fastapi import (
     Path,
     UploadFile,
     status,
+    Depends
 )
 from sqlalchemy import delete, select
 
 from app.dependencies import T_Session
+from app.security import get_api_key
 from rag.process import process_pdf
 from rag.vector_store import (
     add_chunks_to_vector_store,
@@ -23,11 +25,14 @@ from rag.vector_store import (
 from .models import DocumentRecord
 from .schemas import DocumentRecordSchema, UploadResponse
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_api_key)],)
 
-
-@router.post('', response_model=UploadResponse, description='')
-async def add_documents(session: T_Session, background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+@router.post('', response_model=UploadResponse)
+async def add_documents(
+    session: T_Session, 
+    background_tasks: BackgroundTasks, 
+    files: List[UploadFile] = File(...),
+):
     """
     Recebe um arquivo PDF, extrai seu conteúdo em chunks e indexa no vector store.
     """

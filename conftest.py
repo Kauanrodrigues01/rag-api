@@ -75,6 +75,10 @@ async def client(session):
 
 
 @pytest.fixture
+def api_key():
+    return settings.API_KEY
+
+@pytest.fixture
 def dummy_documents():
     """Fixture que retorna uma lista de documentos LangChain simulados."""
     return [
