@@ -46,6 +46,27 @@ async def test_add_douments_success(mocker, client, session, fake_pdf_upload_fil
 
 
 @pytest.mark.asyncio
+async def test_add_documents_multiple_files_coverage(mocker, client, fake_pdf_upload_file):
+    mocker.patch('documents.routes.add_chunks_to_vector_store')
+
+    fake_pdf_upload_file.file.seek(0)
+    file_bytes = fake_pdf_upload_file.file.read()
+
+    files_to_upload = [
+        ('files', (f'one_{fake_pdf_upload_file.filename}', file_bytes, 'application/pdf')),
+        ('files', (f'two_{fake_pdf_upload_file.filename}', file_bytes, 'application/pdf')),
+    ]
+
+    response = await client.post('/documents', files=files_to_upload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data['total_files'] == 2
+    assert 'one_' in data['filenames'][0] or 'two_' in data['filenames'][0]
+    assert 'Files processed and chunks sent for indexing.' in data['message']
+
+
+@pytest.mark.asyncio
 async def test_add_douments_invalid_content_type(client, session):
     """
     Rejects non-PDF file upload with 400 error
