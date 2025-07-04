@@ -1,7 +1,6 @@
 from uuid import uuid4
 
 import pytest
-from fastapi import UploadFile
 from langchain_core.documents import Document
 from sqlalchemy import insert, select
 
