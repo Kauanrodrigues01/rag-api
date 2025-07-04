@@ -6,7 +6,7 @@ from rag.process import process_pdf
 @pytest.mark.asyncio
 async def test_process_pdf_success(fake_pdf_upload_file):
     """
-    Testa se process_pdf processa um PDF válido com sucesso.
+    Test whether process_pdf successfully processes a valid PDF.
     """
     chunks = await process_pdf(fake_pdf_upload_file, 'test.pdf')
 
@@ -18,7 +18,7 @@ async def test_process_pdf_success(fake_pdf_upload_file):
 @pytest.mark.asyncio
 async def test_process_pdf_file_read_error(mocker, fake_pdf_upload_file):
     """
-    Testa o tratamento de erro quando a leitura do UploadFile falha.
+    Tests error handling when reading from UploadFile fails.
     """
     mocker.patch.object(fake_pdf_upload_file, 'read', side_effect=IOError('Erro simulado'))
 
@@ -29,7 +29,7 @@ async def test_process_pdf_file_read_error(mocker, fake_pdf_upload_file):
 @pytest.mark.asyncio
 async def test_process_pdf_loader_error(mocker, fake_pdf_upload_file):
     """
-    Testa o tratamento de erro quando o PyPDFLoader falha.
+    Tests error handling when PyPDFLoader fails.
     """
     # Mockar a classe PyPDFLoader para lançar exceção
     mock_loader = mocker.patch('rag.process.PyPDFLoader')

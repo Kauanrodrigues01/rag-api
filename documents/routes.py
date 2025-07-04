@@ -27,7 +27,7 @@ router = APIRouter()
 
 
 @router.post('', response_model=UploadResponse, description='')
-async def add_file(session: T_Session, background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+async def add_documents(session: T_Session, background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
     """
     Recebe um arquivo PDF, extrai seu conteúdo em chunks e indexa no vector store.
     """
@@ -82,16 +82,16 @@ async def add_file(session: T_Session, background_tasks: BackgroundTasks, files:
 
 @router.get('', response_model=List[DocumentRecordSchema])
 async def list_files(session: T_Session):
-    """
-    Retorna todos os arquivos salvos no banco de dados.
-    """
-    result = await session.execute(select(DocumentRecord))
-    documents = result.scalars().all()
-    return documents
+    try:
+        result = await session.execute(select(DocumentRecord))
+        documents = result.scalars().all()
+        return documents
+    except Exception:
+        raise HTTPException(status_code=500)
 
 
 @router.delete('/{document_id}', description='Remove um arquivo e seus chunks usando o ID.')
-async def delete_file(
+async def delete_document(
     session: T_Session,
     document_id: UUID = Path(..., description='ID do documento a ser removido')
 ):

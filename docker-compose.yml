@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:17.2-alpine
+    container_name: pgdb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: dbname
+    ports:
+      - "5432:5432"
+    networks:
+      - pgnet
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - pgnet
+    depends_on:
+      - db
+
+networks:
+  pgnet:
+    driver: bridge

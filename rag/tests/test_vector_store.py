@@ -12,8 +12,8 @@ from rag.vector_store import (
 
 def test_get_vector_store_singleton(mocker):
     """
-    Valida que get_vector_store funciona como um singleton, instanciando
-    Chroma e OpenAIEmbeddings apenas uma vez.
+    Validates that get_vector_store works as a singleton, instantiating
+    Chroma and OpenAIEmbeddings only once.
     """
     mock_embeddings = mocker.patch('rag.vector_store.OpenAIEmbeddings')
     mock_chroma = mocker.patch('rag.vector_store.Chroma')
@@ -28,7 +28,7 @@ def test_get_vector_store_singleton(mocker):
 
 def test_get_vector_store_instantiation_error(mocker):
     """
-    Testa o tratamento de erro se a instanciação do Chroma falhar.
+    Tests error handling if Chroma instantiation fails.
     """
     mocker.patch('rag.vector_store.OpenAIEmbeddings')
     mocker.patch('rag.vector_store.Chroma', side_effect=Exception("Falha na conexão com Chroma"))
@@ -40,8 +40,7 @@ def test_get_vector_store_instantiation_error(mocker):
 @pytest.mark.asyncio
 async def test_add_chunks_to_vector_store_success(mocker, mock_vector_store, dummy_documents):
     """
-    Testa se a função `add_chunks_to_vector_store` chama corretamente
-    o método `aadd_documents` da vector store.
+    Tests whether the `add_chunks_to_vector_store` function correctly calls the vector store's `aadd_documents` method.
     """
     mocker.patch('rag.vector_store.get_vector_store', return_value=mock_vector_store)
 
@@ -55,7 +54,7 @@ async def test_add_chunks_to_vector_store_success(mocker, mock_vector_store, dum
 @pytest.mark.asyncio
 async def test_add_chunks_to_vector_store_error(mocker, mock_vector_store, dummy_documents):
     """
-    Testa o tratamento de erro quando `aadd_documents` falha.
+    Tests error handling when `aadd_documents` fails.
     """
     mock_vector_store.aadd_documents.side_effect = Exception("Erro ao adicionar documentos")
     mocker.patch('rag.vector_store.get_vector_store', return_value=mock_vector_store)
@@ -67,16 +66,16 @@ async def test_add_chunks_to_vector_store_error(mocker, mock_vector_store, dummy
 
 
 def test_generate_chunks_ids():
+    """
+    Tests whether chunk IDs are generated correctly with valid name, index, and UUID.
+    """
     filename = "example.pdf"
     chunks = [Document(page_content="Chunk 1"), Document(page_content="Chunk 2")]
 
     chunk_ids = generate_chunks_ids(filename, chunks)
 
-    # Verifica se a lista de IDs tem o mesmo tamanho da lista de chunks
     assert len(chunk_ids) == len(chunks)
 
-    # Verifica se cada ID segue o padrão esperado e contém UUIDs válidos
     for i, chunk_id in enumerate(chunk_ids):
-        # Regex para validar formato: example.pdf_chunk_i_uuid
         pattern = rf"^{filename}_chunk_{i}_[0-9a-fA-F-]{{36}}$"
         assert re.match(pattern, chunk_id), f'ID {chunk_id} não está no formato esperado'

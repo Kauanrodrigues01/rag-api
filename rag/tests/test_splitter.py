@@ -5,7 +5,7 @@ from rag.splitter import split_documents
 
 def test_split_documents_default_parameters(dummy_documents):
     """
-    Valida a divisão de documentos com os parâmetros padrão.
+    Validates document splitting with default parameters.
     """
     chunks = split_documents(dummy_documents)
 
@@ -16,8 +16,7 @@ def test_split_documents_default_parameters(dummy_documents):
 
 def test_split_documents_custom_parameters():
     """
-    Valida a divisão de documentos com chunk_size e chunk_overlap customizados,
-    garantindo que a lógica de divisão seja respeitada.
+    Validates document splitting with custom chunk_size and chunk_overlap.
     """
     long_text = 'a' * 150
     doc = [Document(page_content=long_text)]
@@ -31,7 +30,7 @@ def test_split_documents_custom_parameters():
 
 def test_split_documents_no_split():
     """
-    Valida que documentos menores que o chunk_size não são divididos.
+    Validates that documents smaller than chunk_size are not split.
     """
     short_doc = [Document(page_content="Texto curto.")]
 

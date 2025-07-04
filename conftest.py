@@ -2,18 +2,76 @@ import io
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
 from fpdf import FPDF
+from httpx import ASGITransport, AsyncClient
 from langchain_core.documents import Document
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    create_async_engine,
+)
+from sqlalchemy.orm import sessionmaker
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
+from app.database import get_async_session, table_registry
 from app.main import app
+from app.settings import settings
+from app.utils.db import (
+    create_test_database,
+    drop_test_database,
+    generate_test_db_name,
+    get_test_db_url,
+)
 from rag import vector_store as vector_store_module
 
+TEST_DB_NAME = generate_test_db_name()
+TEST_DB_URL = get_test_db_url(settings.DATABASE_URL, TEST_DB_NAME)
 
-@pytest.fixture
-def client():
-    return TestClient(app)
+
+@pytest.fixture(scope='session')
+def test_db():
+    # Funções sincronas para criar e deletar base de dados
+    create_test_database(settings.DATABASE_URL, TEST_DB_NAME)
+    yield
+    drop_test_database(settings.DATABASE_URL, TEST_DB_NAME)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def engine(test_db):
+    engine = create_async_engine(TEST_DB_URL)
+    yield engine
+
+
+@pytest_asyncio.fixture(scope='function')
+async def session(engine):
+    AsyncSessionLocal = sessionmaker(
+        bind=engine,
+        class_=AsyncSession,
+        expire_on_commit=False
+    )
+
+    async with engine.begin() as conn:
+        await conn.run_sync(table_registry.metadata.create_all)
+
+    async with AsyncSessionLocal() as session:
+        yield session
+
+    async with engine.begin() as conn:
+        await conn.run_sync(table_registry.metadata.drop_all)
+
+
+@pytest_asyncio.fixture
+async def client(session):
+    async def override_get_async_session():
+        yield session
+
+    app.dependency_overrides[get_async_session] = override_get_async_session
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url='http://testserver') as client:
+        yield client
+
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture

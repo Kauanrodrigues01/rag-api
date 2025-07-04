@@ -5,6 +5,9 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_ask_question_success(mocker, mock_vector_store):
+    """
+    Tests whether `ask_question` returns the expected response by correctly invoking the retrieval chain.
+    """
     question = 'Qual o sentido da vida?'
     expected_answer = {'answer': '42'}
 
@@ -28,7 +31,7 @@ async def test_ask_question_success(mocker, mock_vector_store):
 @pytest.mark.asyncio
 async def test_ask_question_chain_exception(mocker, mock_vector_store):
     """
-    Testa o tratamento de exceção quando a invocação da cadeia falha.
+    Tests exception handling when chain invocation fails.
     """
     question = 'Qualquer pergunta'
 

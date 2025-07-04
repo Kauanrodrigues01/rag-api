@@ -28,5 +28,5 @@ omit = [
 lint = 'ruff check .'
 format = 'ruff check --fix'
 run = 'uvicorn app.main:app --reload --port 8000'
-test = 'pytest -s -x --cov=. -vv'
+test = 'pytest -s --cov=. -vv'
 post_test = 'coverage html'
