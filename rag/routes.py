@@ -4,7 +4,10 @@ from rag.rag_chain import ask_question as ask_question_rag
 
 from .schemas import AskQuestionRequest, AskQuestionResponse
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/rag',
+    tags=['RAG']
+)
 
 
 @router.post('/ask-question', response_model=AskQuestionResponse)

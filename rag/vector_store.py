@@ -38,6 +38,10 @@ async def delete_chunks_by_ids(ids: List[str]):
     vector_store = get_vector_store()
     await vector_store.adelete(ids=ids)
 
+async def get_chunks_by_ids(ids: List[str]):
+    vector_store = get_vector_store()
+    result = await vector_store.aget_by_ids(ids)
+    return result
 
 def generate_chunks_ids(filename: str, chunks: List[Document]) -> List[str]:
     chunk_ids = [f'{filename}_chunk_{i}_{uuid4()}' for i in range(len(chunks))]

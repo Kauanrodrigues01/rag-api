@@ -20,12 +20,17 @@ from rag.vector_store import (
     add_chunks_to_vector_store,
     delete_chunks_by_ids,
     generate_chunks_ids,
+    get_chunks_by_ids
 )
 
 from .models import DocumentRecord
 from .schemas import DocumentRecordSchema, UploadResponse
 
-router = APIRouter(dependencies=[Depends(get_api_key)],)
+router = APIRouter(
+    prefix='/documents',
+    tags=['Documents'],
+    dependencies=[Depends(get_api_key)]
+)
 
 @router.post('', response_model=UploadResponse)
 async def add_documents(
@@ -91,8 +96,8 @@ async def list_files(session: T_Session):
         result = await session.execute(select(DocumentRecord))
         documents = result.scalars().all()
         return documents
-    except Exception:
-        raise HTTPException(status_code=500)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete('/{document_id}', description='Remove um arquivo e seus chunks usando o ID.')
@@ -118,6 +123,8 @@ async def delete_document(
     try:
         # Deleta os chunks da vector store
         await delete_chunks_by_ids(chunk_ids)
+        
+        print(await get_chunks_by_ids(chunk_ids))
 
         # Deleta registro do documento no Postgres
         await session.execute(delete(DocumentRecord).where(DocumentRecord.id == document_id))

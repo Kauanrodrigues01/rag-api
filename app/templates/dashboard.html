@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Documentos RAG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            margin-bottom: 40px;
+        }
+
+        .upload-area {
+            border: 3px dashed #4facfe;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8fbff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #00f2fe;
+            background: #e6f7ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-style: solid;
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .upload-area.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #4facfe;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .upload-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .upload-button, .select-button {
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .select-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .select-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+        }
+
+        .upload-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            display: none;
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+        }
+
+        .upload-button:disabled, .select-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .api-key-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8fbff;
+            border-radius: 15px;
+            border: 1px solid #e3f2fd;
+        }
+
+        .api-key-label {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .api-key-status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: none;
+        }
+
+        .api-key-status.valid {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .api-key-status.invalid {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .documents-section h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 300;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .document-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .document-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            word-break: break-word;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .document-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .delete-button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .delete-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .file-preview {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .upload-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Gerenciador de Documentos RAG</h1>
+            <p>Faça upload e gerencie seus documentos PDF para processamento RAG</p>
+        </div>
+
+        <div class="main-content">
+            <div class="api-key-section">
+                <label class="api-key-label" for="apiKeyInput">
+                    🔑 API Key (necessária para upload e gerenciamento)
+                </label>
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    class="api-key-input" 
+                    placeholder="Insira sua API Key aqui..."
+                    autocomplete="off"
+                >
+                <div class="api-key-status" id="apiKeyStatus"></div>
+            </div>
+
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">
+                        Arraste arquivos PDF aqui ou clique para selecionar
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" multiple accept=".pdf">
+                    
+                    <div class="upload-buttons">
+                        <button class="select-button" id="selectButton">
+                            Selecionar Arquivos
+                        </button>
+                        <button class="upload-button" id="uploadButton">
+                            Fazer Upload
+                        </button>
+                    </div>
+                    
+                    <div class="file-preview" id="filePreview"></div>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="documents-section">
+                <h2>Documentos Carregados</h2>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando documentos...</p>
+                </div>
+                <div class="documents-grid" id="documentsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = '/api/documents';
+
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectButton = document.getElementById('selectButton');
+        const uploadButton = document.getElementById('uploadButton');
+        const filePreview = document.getElementById('filePreview');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const documentsGrid = document.getElementById('documentsGrid');
+        const loading = document.getElementById('loading');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+        // Application state
+        let selectedFiles = [];
+        let currentApiKey = '';
+        let isApiKeyValid = false;
+        let isUploading = false;
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUIState();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // API Key events
+            apiKeyInput.addEventListener('input', handleApiKeyChange);
+            apiKeyInput.addEventListener('blur', validateApiKey);
+
+            // Upload area events (only for drag and drop)
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Button events
+            selectButton.addEventListener('click', handleSelectFiles);
+            uploadButton.addEventListener('click', handleUpload);
+        }
+
+        function handleApiKeyChange(e) {
+            currentApiKey = e.target.value.trim();
+            apiKeyStatus.style.display = 'none';
+            isApiKeyValid = false;
+            updateUIState();
+        }
+
+        function updateUIState() {
+            const hasApiKey = currentApiKey.length > 0;
+            const hasSelectedFiles = selectedFiles.length > 0;
+
+            // Update upload area
+            if (!hasApiKey) {
+                uploadArea.classList.add('disabled');
+                selectButton.disabled = true;
+                selectButton.textContent = 'Insira a API Key primeiro';
+            } else if (!isApiKeyValid) {
+                uploadArea.classList.add('disabled');
+                selectButton.disabled = true;
+                selectButton.textContent = 'Validando API Key...';
+            } else {
+                uploadArea.classList.remove('disabled');
+                selectButton.disabled = isUploading;
+                selectButton.textContent = isUploading ? 'Fazendo Upload...' : 'Selecionar Arquivos';
+            }
+
+            // Update upload button visibility and state
+            if (hasSelectedFiles && isApiKeyValid) {
+                uploadButton.style.display = 'inline-block';
+                uploadButton.disabled = isUploading;
+                uploadButton.textContent = isUploading ? 'Fazendo Upload...' : `Fazer Upload (${selectedFiles.length})`;
+            } else {
+                uploadButton.style.display = 'none';
+            }
+        }
+
+        async function validateApiKey() {
+            if (!currentApiKey) {
+                apiKeyStatus.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'GET',
+                    headers: {
+                        'X-API-Key': currentApiKey
+                    }
+                });
+
+                if (response.ok) {
+                    isApiKeyValid = true;
+                    apiKeyStatus.className = 'api-key-status valid';
+                    apiKeyStatus.textContent = '✅ API Key válida';
+                    apiKeyStatus.style.display = 'block';
+                    loadDocuments();
+                } else {
+                    isApiKeyValid = false;
+                    apiKeyStatus.className = 'api-key-status invalid';
+                    apiKeyStatus.textContent = '❌ API Key inválida';
+                    apiKeyStatus.style.display = 'block';
+                    documentsGrid.innerHTML = createEmptyState('🔒', 'API Key necessária', 'Insira uma API Key válida para visualizar os documentos');
+                }
+            } catch (error) {
+                isApiKeyValid = false;
+                apiKeyStatus.className = 'api-key-status invalid';
+                apiKeyStatus.textContent = '❌ Erro ao validar API Key';
+                apiKeyStatus.style.display = 'block';
+            }
+
+            updateUIState();
+        }
+
+        function handleSelectFiles() {
+            if (!isApiKeyValid) {
+                showNotification('❌ Insira uma API Key válida primeiro', 'error');
+                apiKeyInput.focus();
+                return;
+            }
+            
+            if (isUploading) {
+                return;
+            }
+
+            fileInput.click();
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            
+            if (!isApiKeyValid || isUploading) {
+                return;
+            }
+            
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (!isApiKeyValid) {
+                showNotification('❌ Insira uma API Key válida primeiro', 'error');
+                apiKeyInput.focus();
+                return;
+            }
+            
+            if (isUploading) {
+                return;
+            }
+            
+            const files = Array.from(e.dataTransfer.files);
+            const pdfFiles = files.filter(file => file.type === 'application/pdf');
+            
+            if (pdfFiles.length !== files.length) {
+                showNotification('Apenas arquivos PDF são suportados', 'error');
+            }
+            
+            if (pdfFiles.length > 0) {
+                selectedFiles = pdfFiles;
+                showFilePreview();
+                updateUIState();
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            const pdfFiles = files.filter(file => file.type === 'application/pdf');
+            
+            if (pdfFiles.length !== files.length) {
+                showNotification('Apenas arquivos PDF são suportados', 'error');
+            }
+            
+            selectedFiles = pdfFiles;
+            showFilePreview();
+            updateUIState();
+        }
+
+        function showFilePreview() {
+            if (selectedFiles.length === 0) {
+                filePreview.style.display = 'none';
+                return;
+            }
+
+            filePreview.style.display = 'block';
+            filePreview.innerHTML = `
+                <h4>Arquivos selecionados (${selectedFiles.length}):</h4>
+                ${selectedFiles.map(file => `
+                    <div class="file-item">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">${formatFileSize(file.size)}</span>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        async function handleUpload() {
+            if (!isApiKeyValid) {
+                showNotification('❌ Insira uma API Key válida primeiro', 'error');
+                apiKeyInput.focus();
+                return;
+            }
+
+            if (selectedFiles.length === 0) {
+                showNotification('❌ Selecione arquivos primeiro', 'error');
+                return;
+            }
+
+            if (isUploading) {
+                return;
+            }
+
+            isUploading = true;
+            updateUIState();
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+
+            progressBar.style.display = 'block';
+            progressFill.style.width = '0%';
+
+            try {
+                // Simulate progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 90) progress = 90;
+                    progressFill.style.width = progress + '%';
+                }, 200);
+
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-API-Key': currentApiKey
+                    }
+                });
+
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Erro no upload');
+                }
+
+                const result = await response.json();
+                
+                showNotification(
+                    `✅ ${result.total_files} arquivo(s) processado(s) com sucesso! ${result.total_chunks} chunks criados.`,
+                    'success'
+                );
+
+                // Reset file selection
+                selectedFiles = [];
+                fileInput.value = '';
+                filePreview.style.display = 'none';
+                
+                // Reload documents
+                loadDocuments();
+
+            } catch (error) {
+                showNotification('❌ Erro no upload: ' + error.message, 'error');
+            } finally {
+                isUploading = false;
+                updateUIState();
+                progressBar.style.display = 'none';
+            }
+        }
+
+        async function loadDocuments() {
+            if (!isApiKeyValid) {
+                documentsGrid.innerHTML = createEmptyState('🔒', 'API Key necessária', 'Insira uma API Key válida para visualizar os documentos');
+                return;
+            }
+
+            loading.style.display = 'block';
+            documentsGrid.innerHTML = '';
+
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    headers: {
+                        'X-API-Key': currentApiKey
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar documentos');
+                }
+
+                const documents = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (documents.length === 0) {
+                    documentsGrid.innerHTML = createEmptyState('📭', 'Nenhum documento encontrado', 'Faça upload de alguns arquivos PDF para começar');
+                    return;
+                }
+
+                documentsGrid.innerHTML = documents.map(doc => `
+                    <div class="document-card">
+                        <div class="document-header">
+                            <div class="document-name">${doc.filename}</div>
+                        </div>
+                        <div class="document-info">
+                            <div class="info-item">
+                                <span class="info-label">Tamanho:</span>
+                                <span class="info-value">${doc.size_mb} MB</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Chunks:</span>
+                                <span class="info-value">${doc.chunks_ids ? doc.chunks_ids.length : 0}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Data:</span>
+                                <span class="info-value">${new Date(doc.created_at || Date.now()).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                        </div>
+                        <button class="delete-button" onclick="deleteDocument('${doc.id}', '${doc.filename}')">
+                            🗑️ Excluir Documento
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                loading.style.display = 'none';
+                documentsGrid.innerHTML = createEmptyState('⚠️', 'Erro ao carregar documentos', error.message);
+            }
+        }
+
+        async function deleteDocument(documentId, filename) {
+            if (!isApiKeyValid) {
+                showNotification('❌ API Key inválida', 'error');
+                return;
+            }
+
+            if (!confirm(`Tem certeza que deseja excluir o documento "${filename}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${documentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-API-Key': currentApiKey
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Erro ao excluir documento');
+                }
+
+                const result = await response.json();
+                showNotification(`✅ ${result.message}`, 'success');
+                loadDocuments();
+
+            } catch (error) {
+                showNotification('❌ Erro ao excluir: ' + error.message, 'error');
+            }
+        }
+
+        function createEmptyState(icon, title, message) {
+            return `
+                <div class="empty-state">
+                    <div class="empty-state-icon">${icon}</div>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 4000);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>

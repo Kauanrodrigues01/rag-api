@@ -11,7 +11,7 @@ async def test_ask_question_success(mocker, client):
 
     payload = {'question': 'Qual o sentido da vida?'}
 
-    response = await client.post('/rag/ask-question', json=payload)
+    response = await client.post('/api/rag/ask-question', json=payload)
 
     assert response.status_code == 200
     assert response.json() == {'answer': mocked_answer}
@@ -26,7 +26,7 @@ async def test_ask_question_invalid_payload(client):
     # Payload inválido: a chave 'query' não existe no schema `AskQuestionRequest`
     invalid_payload = {'query': 'Essa pergunta vai falhar'}
 
-    response = await client.post('/rag/ask-question', json=invalid_payload)
+    response = await client.post('/api/rag/ask-question', json=invalid_payload)
 
     # 422 é o código padrão do FastAPI para erros de validação
     assert response.status_code == 422
