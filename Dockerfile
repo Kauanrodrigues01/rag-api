@@ -1,31 +1,36 @@
-# Use Python 3.13 Alpine as base image
-FROM python:3.13-alpine
+# Use Python 3.13 Slim (Debian-based) instead of Alpine for better compatibility
+FROM python:3.13-slim
 
 # Set working directory
 WORKDIR /app
 
 # Install system dependencies required for Python packages
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     gcc \
-    musl-dev \
-    postgresql-dev \
+    g++ \
     python3-dev \
-    libffi-dev \
-    && rm -rf /var/cache/apk/*
+    libpq-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
-COPY requirements.txt .
+# Install Poetry
+RUN pip install --no-cache-dir poetry
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Copy Poetry configuration files
+COPY pyproject.toml poetry.lock* ./
+
+# Configure Poetry to not create virtual environment
+RUN poetry config virtualenvs.create false
+
+# Install dependencies with Poetry
+RUN poetry install --only=main --no-root
 
 # Copy application code
 COPY . .
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -S appuser -u 1001 -G appgroup
+RUN groupadd -g 1001 appgroup && \
+    useradd -r -u 1001 -g appgroup appuser
 
 # Create directories and set permissions
 RUN mkdir -p /app/vector-db /app/app/static /app/app/templates && \

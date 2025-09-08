@@ -16,10 +16,8 @@ pip-delete-this-directory.txt
 .pytest_cache
 htmlcov/
 
-# Poetry (not needed with requirements.txt)
+# Virtual environments
 .venv
-poetry.lock
-pyproject.toml
 
 # Development
 .env.example
@@ -62,3 +60,6 @@ DOCKER.md
 # Temporary files
 tmp/
 temp/
+
+# Requirements file (using Poetry now)
+requirements.txt
