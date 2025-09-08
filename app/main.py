@@ -14,8 +14,14 @@ app.mount(
 
 templates = Jinja2Templates(directory='app/templates')
 
+
 app.include_router(documents_router, prefix='/api')
 app.include_router(rag_router, prefix='/api')
+
+# Health check endpoint
+@app.get("/health", tags=["Health"])
+async def health():
+    return {"status": "ok"}
 
 
 @app.get("/")
