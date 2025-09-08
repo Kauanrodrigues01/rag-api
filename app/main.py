@@ -1,11 +1,21 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 
 from documents.routes import router as documents_router
 from rag.routes import router as rag_router
 
 app = FastAPI(title='RAG API')
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite todas as origens (para desenvolvimento)
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos os métodos HTTP
+    allow_headers=["*"],  # Permite todos os headers
+)
 app.mount(
     '/static',
     StaticFiles(directory='app/static'),
