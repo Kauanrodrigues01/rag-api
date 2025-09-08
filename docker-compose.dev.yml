@@ -16,34 +16,56 @@ services:
     volumes:
       - vector_data:/app/vector-db
     networks:
-      - app-network
+      - pgnet
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/', timeout=10)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # PostgreSQL Database
   db:
     image: postgres:17.2-alpine
-    container_name: rag-db
+    container_name: pgdb
     restart: unless-stopped
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: dbname
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - app-network
+      - pgnet
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d dbname"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # PgAdmin (Optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - pgnet
+    depends_on:
+      - db
+
 volumes:
   postgres_data:
   vector_data:
 
 networks:
-  app-network:
+  pgnet:
     driver: bridge

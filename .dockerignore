@@ -1,0 +1,64 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.pytest_cache
+htmlcov/
+
+# Poetry (not needed with requirements.txt)
+.venv
+poetry.lock
+pyproject.toml
+
+# Development
+.env.example
+README.md
+README2.md
+
+# Testing
+tests/
+**/tests/
+conftest.py
+
+# Development tools
+.ruff_cache
+.mypy_cache
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.dev.yml
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Documentation
+docs/
+*.md
+DOCKER.md
+
+# Temporary files
+tmp/
+temp/
