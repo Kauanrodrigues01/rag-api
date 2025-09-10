@@ -1,16 +1,16 @@
-# Use Python 3.13 Slim (Debian-based) instead of Alpine for better compatibility
-FROM python:3.13-slim
+# =========================
+# Stage 1: Builder
+# =========================
+FROM python:3.13-slim AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies required for Python packages
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    python3-dev \
     libpq-dev \
-    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
@@ -22,29 +22,41 @@ COPY pyproject.toml poetry.lock* ./
 # Configure Poetry to not create virtual environment
 RUN poetry config virtualenvs.create false
 
-# Install dependencies with Poetry
+# Install dependencies (only production deps)
 RUN poetry install --only=main --no-root
 
 # Copy application code
 COPY . .
 
+# =========================
+# Stage 2: Final Image
+# =========================
+FROM python:3.13-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Set working directory
+WORKDIR /app
+
+# Copy installed dependencies and code from builder
+COPY --from=builder /usr/local/lib/python3.13 /usr/local/lib/python3.13
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+COPY --from=builder /app /app
+
 # Create non-root user for security
 RUN groupadd -g 1001 appgroup && \
-    useradd -r -u 1001 -g appgroup appuser
-
-# Create directories and set permissions
-RUN mkdir -p /app/vector-db /app/app/static /app/app/templates && \
-    chown -R appuser:appgroup /app
+    useradd -r -u 1001 -g appgroup appuser && \
+    mkdir -p /app/vector-db /app/app/static /app/app/templates && \
+    chown -R appuser:appgroup /app && \
+    chmod -R 755 /app
 
 # Switch to non-root user
 USER appuser
 
 # Expose port
 EXPOSE 8000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/', timeout=10)" || exit 1
 
 # Command to run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
