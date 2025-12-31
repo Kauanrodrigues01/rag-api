@@ -20,7 +20,7 @@ def get_vector_store():
         _global_instance_vector_store = Chroma(
             persist_directory=settings.VECTOR_STORE_PATH,
             embedding_function=OpenAIEmbeddings(
-                model='text-embedding-3-small'
+                model=settings.EMBEDDING_MODEL
             )
         )
         return _global_instance_vector_store

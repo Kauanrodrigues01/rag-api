@@ -14,6 +14,32 @@ router = APIRouter(
 async def ask_question(data: AskQuestionRequest):
     """
     Processa uma pergunta e retorna uma resposta gerada com base em documentos vetorizados.
+    
+    A resposta inclui:
+    - **answer**: Resposta formatada em Markdown
+    - **sources**: Lista de documentos/páginas utilizados como fonte
+    - **confidence**: Nível de confiança da resposta (Alta/Média/Baixa)
+    
+    ## Exemplo de Requisição:
+    ```json
+    {
+        "question": "Quais são as principais habilidades técnicas?"
+    }
+    ```
+    
+    ## Exemplo de Resposta:
+    ```json
+    {
+        "answer": "**Principais habilidades técnicas:**\\n\\n1. Python\\n2. FastAPI\\n3. Machine Learning\\n\\n[Fonte: curriculo.pdf]\\n\\n**Confiança: Alta**",
+        "sources": [
+            {
+                "filename": "curriculo.pdf",
+                "page": 1
+            }
+        ],
+        "confidence": "Alta"
+    }
+    ```
     """
-    answer = await ask_question_rag(data.question)
-    return {'answer': answer}
+    result = await ask_question_rag(data.question)
+    return result

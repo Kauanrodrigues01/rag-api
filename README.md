@@ -53,12 +53,28 @@ As principais tecnologias utilizadas neste projeto incluem:
 
 ### 1. Crie seu `.env`
 
-```env
-OPENAI_API_KEY=sk-...
-VECTOR_STORE_PATH=./chroma_db
-DATABASE_URL=postgresql+asyncpg://user:pass@db:5432/dbname
-API_KEY_SECRET=minha-chave-secreta
+Copie o arquivo `.env.example` e configure suas variáveis:
+
+```bash
+cp .env.example .env
 ```
+
+Configure pelo menos as variáveis obrigatórias:
+
+```env
+# Obrigatórias
+API_KEY=your-secret-api-key-here
+OPENAI_API_KEY=sk-your-openai-api-key-here
+DATABASE_URL=postgresql+asyncpg://user:pass@db:5432/dbname
+
+# Opcionais (com valores padrão)
+VECTOR_STORE_PATH=./chroma_db
+LLM_MODEL=gpt-3.5-turbo
+CHUNK_SIZE=1000
+MAX_FILE_SIZE_MB=10
+```
+
+📖 **Para documentação completa de todas as variáveis de ambiente, veja [CONFIGURATION.md](./CONFIGURATION.md)**
 
 ### 2. Suba os containers
 
@@ -69,6 +85,8 @@ docker compose up --build
 ### 🌐 Acesse:
 
 * API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+* Health Check Simples: [http://localhost:8000/health](http://localhost:8000/health)
+* Health Check Detalhado: [http://localhost:8000/health/detailed](http://localhost:8000/health/detailed)
 * Painel Admin: [http://localhost:8000/admin](http://localhost:8000/admin)
 * PGAdmin: [http://localhost:5050](http://localhost:5050)
 
@@ -96,8 +114,26 @@ X-API-KEY: <sua-chave>
 
 * Todas as rotas de CRUD de documentos são protegidas por API Key.
 * `get_api_key()` verifica o header `X-API-KEY` com um segredo definido no `.env`.
+* Validação de tamanho máximo de arquivo (configurável via `MAX_FILE_SIZE_MB`).
+* CORS configurável para ambientes de desenvolvimento e produção.
 * Rodando com usuário não privilegiado no Docker.
 * Separação clara entre lógica de LLM e manipulação de arquivos.
+* Health checks detalhados para monitoramento de todos os componentes.
+
+---
+
+## ⚙️ Configurações Avançadas
+
+O projeto oferece ampla configurabilidade via variáveis de ambiente:
+
+* **LLM**: Escolha o modelo (GPT-3.5/GPT-4), temperatura e tokens máximos
+* **Embeddings**: Configure o modelo de embeddings da OpenAI
+* **Chunking**: Ajuste tamanho e overlap dos chunks
+* **CORS**: Configure origens permitidas para produção
+* **Limites**: Defina tamanho máximo de arquivos
+* **Health Checks**: Configure timeout dos health checks
+
+📖 **Veja a [documentação completa de configuração](./CONFIGURATION.md) para todos os detalhes**
 
 ---
 

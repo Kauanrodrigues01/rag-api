@@ -15,6 +15,7 @@ from sqlalchemy import delete, select
 
 from app.dependencies import T_Session
 from app.security import get_api_key
+from app.settings import settings
 from rag.process import process_pdf
 from rag.vector_store import (
     add_chunks_to_vector_store,
@@ -51,6 +52,20 @@ async def add_documents(
                 detail=f"Invalid file format for '{file.filename}'. Only PDF files are supported."
             )
 
+        # Lê o conteúdo do arquivo para validar tamanho
+        content = await file.read()
+        size_mb = len(content) / (1024 * 1024)  # bytes -> MB
+        
+        # Valida o tamanho do arquivo
+        if size_mb > settings.MAX_FILE_SIZE_MB:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File '{file.filename}' exceeds maximum size of {settings.MAX_FILE_SIZE_MB}MB. File size: {size_mb:.2f}MB"
+            )
+        
+        # Reposiciona o ponteiro para processar o arquivo
+        await file.seek(0)
+
         try:
             chunks = await process_pdf(file, file.filename)
         except Exception:
@@ -62,16 +77,11 @@ async def add_documents(
         # Gera chunk_ids únicos por arquivo
         chunk_ids = generate_chunks_ids(filename=file.filename, chunks=chunks)
 
-        # Calcula o tamanho em MB do arquivo
-        content = await file.read()
-        size_mb = round(len(content) / (1024 * 1024), 2)  # bytes -> MB
-        await file.seek(0)  # reposiciona ponteiro, se precisar reutilizar
-
         # Salva no DB
         document_record = DocumentRecord(
             filename=file.filename,
             chunks_ids=chunk_ids,
-            size_mb=size_mb
+            size_mb=round(size_mb, 2)
         )
         session.add(document_record)
         await session.commit()
