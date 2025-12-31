@@ -41,8 +41,8 @@ services:
       
       # Health Check Configuration
       - HEALTH_CHECK_TIMEOUT=${HEALTH_CHECK_TIMEOUT:-5}
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     volumes:
       - vector_data:/app/vector-db
     networks:
