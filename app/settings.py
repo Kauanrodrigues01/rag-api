@@ -32,10 +32,10 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE_MB: int = Field(default=10, gt=0)
     
     # CORS Configuration
-    CORS_ORIGINS: List[str] = Field(default=['*'])
+    CORS_ORIGINS: str = Field(default='*')
     CORS_ALLOW_CREDENTIALS: bool = Field(default=True)
-    CORS_ALLOW_METHODS: List[str] = Field(default=['*'])
-    CORS_ALLOW_HEADERS: List[str] = Field(default=['*'])
+    CORS_ALLOW_METHODS: str = Field(default='*')
+    CORS_ALLOW_HEADERS: str = Field(default='*')
     
     # Application Configuration
     APP_NAME: str = Field(default='RAG API')
@@ -45,12 +45,26 @@ class Settings(BaseSettings):
     # Health Check Configuration
     HEALTH_CHECK_TIMEOUT: int = Field(default=5, gt=0)
     
-    @field_validator('CORS_ORIGINS', mode='before')
-    @classmethod
-    def parse_cors_origins(cls, v):
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(',')]
-        return v
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Converte CORS_ORIGINS string em lista."""
+        if self.CORS_ORIGINS == '*':
+            return ['*']
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(',')]
+    
+    @property
+    def cors_methods_list(self) -> List[str]:
+        """Converte CORS_ALLOW_METHODS string em lista."""
+        if self.CORS_ALLOW_METHODS == '*':
+            return ['*']
+        return [method.strip() for method in self.CORS_ALLOW_METHODS.split(',')]
+    
+    @property
+    def cors_headers_list(self) -> List[str]:
+        """Converte CORS_ALLOW_HEADERS string em lista."""
+        if self.CORS_ALLOW_HEADERS == '*':
+            return ['*']
+        return [header.strip() for header in self.CORS_ALLOW_HEADERS.split(',')]
     
     @field_validator('CHUNK_OVERLAP')
     @classmethod
