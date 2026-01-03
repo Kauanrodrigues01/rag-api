@@ -1,4 +1,4 @@
-# 📚 Portfolio RAG API - Sistema de Respostas Inteligentes
+# 🧠 KnowMe RAG - Sistema de Respostas Inteligentes sobre Você
 
 <p align="center">
   <img src="URL_DA_IMAGEM_1" alt="Screenshot 1" width="700"/>
@@ -25,9 +25,9 @@
 
 ## 📋 Sobre o Projeto
 
-**Portfolio RAG API** é uma API moderna e assíncrona desenvolvida com **FastAPI**, projetada para integrar dados pessoais (como currículo, projetos e experiências) em um pipeline **RAG (Retrieval-Augmented Generation)** com LLMs, utilizando **LangChain**, **ChromaDB**, **OpenAI Embeddings** e **Jinja2** para gerenciamento via interface web.
+**KnowMe RAG** é uma API moderna e assíncrona desenvolvida com **FastAPI**, projetada para integrar dados pessoais (como currículo, projetos e experiências) em um pipeline **RAG (Retrieval-Augmented Generation)** com LLMs, utilizando **LangChain**, **ChromaDB**, **OpenAI Embeddings** e **Jinja2** para gerenciamento via interface web.
 
-Com esta API, desenvolvedores podem fazer upload de arquivos PDF contendo dados sobre si mesmos e permitir que usuários façam perguntas e obtenham respostas contextuais baseadas nesses dados.
+Com o **KnowMe RAG**, desenvolvedores podem fazer upload de arquivos PDF contendo dados sobre si mesmos e permitir que usuários façam perguntas e obtenham respostas contextuais baseadas nesses dados, como se estivessem conversando diretamente com você.
 
 ---
 
