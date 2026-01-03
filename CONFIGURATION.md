@@ -1,8 +1,8 @@
-# Guia de Configuração - RAG API
+# Guia de Configuração - KnowMe RAG
 
 ## 📋 Variáveis de Ambiente
 
-Este documento descreve todas as variáveis de ambiente disponíveis para configurar a RAG API.
+Este documento descreve todas as variáveis de ambiente disponíveis para configurar o KnowMe RAG.
 
 ---
 
