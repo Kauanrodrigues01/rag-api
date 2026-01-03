@@ -1,4 +1,29 @@
-# 📚 Portfolio RAG API
+# 📚 Portfolio RAG API - Sistema de Respostas Inteligentes
+
+<p align="center">
+  <img src="URL_DA_IMAGEM_1" alt="Screenshot 1" width="700"/>
+</p>
+
+<p align="center">
+  <img src="URL_DA_IMAGEM_2" alt="Screenshot 2" width="700"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
+  <img src="https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangChain"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/ChromaDB-FF6B6B?style=for-the-badge&logo=databricks&logoColor=white" alt="ChromaDB"/>
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI"/>
+  <img src="https://img.shields.io/badge/Uvicorn-009688?style=for-the-badge&logo=gunicorn&logoColor=white" alt="Uvicorn"/>
+  <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" alt="SQLAlchemy"/>
+  <img src="https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white" alt="Pytest"/>
+</p>
+
+---
+
+## 📋 Sobre o Projeto
 
 **Portfolio RAG API** é uma API moderna e assíncrona desenvolvida com **FastAPI**, projetada para integrar dados pessoais (como currículo, projetos e experiências) em um pipeline **RAG (Retrieval-Augmented Generation)** com LLMs, utilizando **LangChain**, **ChromaDB**, **OpenAI Embeddings** e **Jinja2** para gerenciamento via interface web.
 
@@ -41,6 +66,7 @@ As principais tecnologias utilizadas neste projeto incluem:
 * **Jinja2**: Renderização de templates para a interface de administração.
 * **Docker**: Empacotamento e deploy dos serviços.
 * **Pytest**: Testes automatizados e cobertura.
+* **Uvicorn**: Servidor ASGI de alta performance.
 
 ---
 
@@ -109,7 +135,6 @@ X-API-KEY: <sua-chave>
 
 ---
 
-
 ## 🔒 Segurança
 
 * Todas as rotas de CRUD de documentos são protegidas por API Key.
@@ -158,3 +183,12 @@ Esse projeto nasceu da necessidade de fornecer respostas automáticas, seguras e
 * 🌍 Deploy com HTTPS e CI/CD
 * 🖼️ Suporte a outros tipos de arquivo além de PDF
 * 📦 Plugin para integração com portfólios públicos
+
+---
+
+## 👨‍💻 Autor
+
+**Kauan Rodrigues Lima**
+
+* GitHub: [@Kauanrodrigues01](https://github.com/Kauanrodrigues01)
+* LinkedIn: [Kauan Rodrigues](https://www.linkedin.com/in/kauan-rodrigues-lima/)
