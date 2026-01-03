@@ -1,11 +1,8 @@
 # 🧠 KnowMe RAG - Sistema de Respostas Inteligentes sobre Você
 
 <p align="center">
-  <img src="URL_DA_IMAGEM_1" alt="Screenshot 1" width="700"/>
-</p>
-
-<p align="center">
-  <img src="URL_DA_IMAGEM_2" alt="Screenshot 2" width="700"/>
+  <img src="https://raw.githubusercontent.com/Kauanrodrigues01/Kauanrodrigues01/refs/heads/main/images/projetos/knowme-rag/knowme-rag-docs.png" alt="Screenshot 1" width="800"/>
+  <img src="https://raw.githubusercontent.com/Kauanrodrigues01/Kauanrodrigues01/refs/heads/main/images/projetos/knowme-rag/knowme-rag.png" alt="Screenshot 2" width="800"/>
 </p>
 
 <p align="center">
